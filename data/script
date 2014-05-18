@@ -1,5 +1,0 @@
-declare("C:\\TempDrive\\Users\\vairy\\DeskTop\\vairy.script.jar", "vairy.main.M_IF", "dummy")
-declare("C:\\TempDrive\\Users\\vairy\\DeskTop\\vairy.script.jar", "vairy.main.M_IF", "var1")
-declare("")
-jexe("dummy","aaa","hoge","bar","foo")
-/* shell("dummy","aaa","hoge","bar","foo") */
