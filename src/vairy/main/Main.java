@@ -13,13 +13,13 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import vairy.Debug.Debug;
-import vairy.app.AppMain;
-import vairy.cui.Console;
+import vairy.core.app.AppMain;
 import vairy.debug.user.DebugKey;
 import vairy.debug.user.GuiDebug;
-import vairy.gui.MainAlermFrame;
-import vairy.resorce.SystemConst;
+import vairy.main.resorce.SystemConst;
 import vairy.script.variable.JScriptVarFactory;
+import vairy.ui.cui.Console;
+import vairy.ui.gui.MainAlermFrame;
 import variy.timer.CycleTimer;
 
 public class Main implements SystemConst{
@@ -28,7 +28,7 @@ public class Main implements SystemConst{
 		Debug.setDebug(DebugKey.EDITTIMER, true);
 		Debug.setDebug(GuiDebug.CALENDARBAR, false);
 
-		AppMain appMain = new AppMain();
+		AppMain appMain = AppMain.getInstance();
 		appMain.startinit();
 
 		/* タイマー回すのはイニットの読み込み終わってからネ！ */
@@ -39,9 +39,7 @@ public class Main implements SystemConst{
 		MainAlermFrame jframe = new MainAlermFrame(appMain);
 		CycleTimer.addListener(jframe);
 
-		jframe.validate();
 		jframe.setVisible(true);
-		jframe.pack();
 
 		Console console = new Console(appMain);
 		console.main();
