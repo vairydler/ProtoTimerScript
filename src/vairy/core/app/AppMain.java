@@ -9,31 +9,27 @@ import java.util.Map;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 
+import vairy.debug.Debug;
 import vairy.core.alerm.Alerm;
 import vairy.core.alerm.AlermManager;
 import vairy.core.alerm.AlermUnit;
 import vairy.core.alerm.param.AlermBean;
 import vairy.core.alerm.param.AlermBeans;
 import vairy.core.alerm.param.EAlermScriptType;
+import vairy.debug.user.DebugKey;
 import vairy.lib.fileaccess.user.AlermAccecor;
 import vairy.main.resorce.SystemConst;
+import vairy.timer.CycleTimer;
+import vairy.timer.TimerRunnable;
 import vairy.ui.mediator.AlermMediator;
 import vairy.ui.mediator.AlermMediator.MediatorEvent;
 import vairy.ui.mediator.AlermMediator.MediatorListener;
 import vairy.ui.mediator.AlermMediator.MediatorType;
-import variy.timer.CycleTimer;
-import variy.timer.TimerRunnable;
 
-public class AppMain implements SystemConst{
+public class AppMain implements SystemConst,TimerRunnable,Runnable{
 	private static final AppMain instance = new AppMain();
 	private AlermManager manager = new AlermManager();
-	private final TimerRunnable mousecap = new TimerRunnable() {
-
-		@Override
-		public void timerrun() {
-
-		}
-	};
+	private TextDialog mousedialog = null;
 
 	public static AppMain getInstance(){
 		return instance;
@@ -49,8 +45,9 @@ public class AppMain implements SystemConst{
 		manager.notifyProgStart();
 
 		AlermMediator instance2 = AlermMediator.getInstance();
-		instance2.addMediator(MediatorType.ADD, new notifyUI());
-		instance2.addMediator(MediatorType.MOUSECAP, new notifyUI());
+		notifyUI notifyUI = new notifyUI();
+		instance2.addMediator(MediatorType.ADD, notifyUI);
+		instance2.addMediator(MediatorType.MOUSECAP, notifyUI);
 
 
 	}
@@ -74,7 +71,7 @@ public class AppMain implements SystemConst{
 			case EDIT:
 				break;
 			case MOUSECAP:
-				new TextDialog();
+				mousedialog = new TextDialog();
 				break;
 			case REMOVE:
 				break;
@@ -84,7 +81,45 @@ public class AppMain implements SystemConst{
 		}
 	}
 
-	private class TextDialog extends JDialog implements TimerRunnable{
+	@Override
+	public void run() {
+		while(true){
+			Debug.println(DebugKey.CYCLE, "APPMAIN_start");
+			manager.notifyCycle();
+
+			if(null != mousedialog){
+				Point p = MouseInfo.getPointerInfo().getLocation();
+				mousedialog.setText(p.toString());
+				mousedialog.pack();
+			}
+
+			Debug.println(DebugKey.CYCLE, "APPMAIN_end");
+			try {
+				dummywait(WATCHDOG);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public void timerrun() {
+		dummynotify();
+	}
+
+	private synchronized void dummywait(long time) throws InterruptedException{
+		wait(time);
+	}
+
+	private synchronized void dummynotify(){
+		notify();
+	}
+
+	private class TextDialog extends JDialog{
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = -5903295865645283213L;
 		private JLabel label = new JLabel();
 		private JDialog dialog = this;
 		public TextDialog(){
@@ -99,7 +134,6 @@ public class AppMain implements SystemConst{
 			dialog.setLocation(new Point(0,0));
 
 			label.setFont(new Font(null, Font.PLAIN, 18));
-			CycleTimer.addListener(this);
 		}
 
 		public void setText(String txt){
@@ -107,16 +141,9 @@ public class AppMain implements SystemConst{
 		}
 
 		@Override
-		public void timerrun() {
-			Point p = MouseInfo.getPointerInfo().getLocation();
-			setText(p.toString());
-			dialog.pack();
-		}
-
-		@Override
 		public void dispose() {
 			super.dispose();
-			CycleTimer.removeListener(this);
+			mousedialog = null;
 		}
 	}
 }

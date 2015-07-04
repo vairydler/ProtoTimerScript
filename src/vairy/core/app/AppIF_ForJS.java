@@ -24,15 +24,6 @@ public class AppIF_ForJS {
 	}
 
 	/**
-	 * 名前基準でアラームを検索して取得する。おんなじ名前がいっぱいあった場合は最初のやつ。
-	 * @param alermname 検索対象のアラーム名
-	 * @return 見つけたアラーム名。なかったらnull
-	 */
-	public AlermUnit_ForJS getAlermUnit(final String alermname){
-		Alerm_ForJS temp = manager.getAlerm(alermname);
-		return (null != temp) ? temp.getUnit():null;
-	}
-	/**
 	 * インデックス基準でアラームを検索して取得する。
 	 * @param alermnum 検索対象のインデックス
 	 * @return 見つけたアラーム名。なかったらnull
@@ -42,19 +33,6 @@ public class AppIF_ForJS {
 		return (null != temp) ? temp.getUnit():null;
 	}
 
-	/**
-	 * アラームを削除。
-	 * @param alermname 削除対象のアラーム名。
-	 * @return 削除の成否。
-	 */
-	public boolean removeAlerm(final String alermname){
-		Alerm_ForJS temp = manager.getAlerm(alermname);
-		Boolean rtn = (null != temp);
-		if(rtn){
-			temp.Delete();
-		}
-		return rtn;
-	}
 	/**
 	 * アラームを削除。
 	 * @param alermnum 削除対象のインデックス。

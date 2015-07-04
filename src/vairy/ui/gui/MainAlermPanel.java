@@ -8,6 +8,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.event.WindowStateListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -18,22 +20,27 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 
+import vairy.debug.Debug;
+import vairy.core.alerm.Alerm;
 import vairy.core.alerm.Alerm_ForJS;
 import vairy.core.alerm.param.AlermBean;
 import vairy.core.alerm.param.EAlermMode;
 import vairy.core.alerm.param.AlermTime;
 import vairy.core.alerm.param.TimerTime;
+import vairy.debug.user.DebugKey;
 import vairy.gui.swing.CalendarBar;
 import vairy.gui.swing.CalendarBar.FIELD;
 
-public class MainAlermPanel extends JPanel{
-	private final Alerm_ForJS target;
+public class MainAlermPanel extends JPanel implements PropertyChangeListener{
+	private final Alerm target;
 	private SubTimerPanel content;
-	public MainAlermPanel(Alerm_ForJS target) {
+	public MainAlermPanel(Alerm target) {
 		this.target = target;
 
 		content = new SubTimerPanel();
 		this.add(content);
+
+		target.addPropertyChangeListener(this);
 
 		this.validate();
 	}
@@ -42,6 +49,10 @@ public class MainAlermPanel extends JPanel{
 		content.updateDisplay();
 	}
 	private class SubTimerPanel extends JPanel{
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = -3540855837382141143L;
 		private JLabel name;
 		private CalendarPanel calpanel;
 		private JToggleButton driveButton;
@@ -65,12 +76,17 @@ public class MainAlermPanel extends JPanel{
 			updateDisplay();
 		}
 
+		public void updateAll(){
+			calpanel.updateAll();
+			updateDisplay();
+		}
+
 		public void updateDisplay(){
 			name.setText(target.getUnit().getBean().getName());
 			driveButton.setSelected(target.getUnit().getBean().isDrive());
 
 			calpanel.cardUpdate();
-			calpanel.updateDisplay();
+			calpanel.updateCycle();
 		}
 
 		public final ActionListener createDriveButtonListener(){
@@ -81,7 +97,7 @@ public class MainAlermPanel extends JPanel{
 						target.notifyTimerStop();
 					}else{
 						target.notifyTimerStart();
-						calpanel.updateDisplay();
+						calpanel.updateCycle();
 					}
 
 					calpanel.cardUpdate();
@@ -144,7 +160,14 @@ public class MainAlermPanel extends JPanel{
 			layout.show(this, index.name());
 		}
 
-		public void updateDisplay(){
+		public void updateAll(){
+			timerEditBar.updateText();
+			timerDisplayBar.updateText();
+			alermEditBar.updateText();
+			alermDisplayBar.updateText();
+		}
+
+		public void updateCycle(){
 			timerUpdate();
 			cardUpdate();
 		}
@@ -182,5 +205,15 @@ public class MainAlermPanel extends JPanel{
 
 			chgDisp(index);
 		}
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		content.updateAll();
+		Debug.println(DebugKey.LISTENER, evt.getPropertyName());
+	}
+
+	public void dispose(){
+		target.removePropertyChangeListener(this);
 	}
 }

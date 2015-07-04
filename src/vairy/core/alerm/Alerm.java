@@ -4,9 +4,12 @@ import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.naming.Binding;
@@ -16,16 +19,15 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import vairy.Debug.Debug;
+import vairy.debug.Debug;
 import vairy.core.alerm.param.EAlermMode;
 import vairy.core.alerm.param.EAlermScriptType;
 import vairy.core.app.AppIF_ForJS;
 import vairy.debug.user.DebugKey;
 import vairy.main.resorce.SystemConst;
 import vairy.script.engine.VScriptEngineFactory;
-import vairy.script.engine.VScriptEngineFactory.CreateEngineType;
 import vairy.script.variable.JScriptVarFactory;
-import variy.timer.TimerRunnable;
+import vairy.timer.TimerRunnable;
 
 /**
  *
@@ -36,15 +38,19 @@ public class Alerm implements Runnable,TimerRunnable,SystemConst, Alerm_ForJS{
 	private AlermUnit unit;
 	private ScriptEngine se;
 	private Set<DeleteListener> dellistener = new HashSet<DeleteListener>();
+	private ArrayList<PropertyChangeListener> propchalistener = new ArrayList<>();
 
-	public Alerm(final AlermUnit unit,final AppIF_ForJS api) {
+	public Alerm(final AlermUnit unit,final AppIF_ForJS api, final Map<String,Object> gram) {
 		setUnit(unit);
-		se = VScriptEngineFactory.getEngineByName("JavaScript", CreateEngineType.ROBOT);
+
+		int maskvalue = VScriptEngineFactory.MSG_MASK | VScriptEngineFactory.ROBO_MASK | VScriptEngineFactory.VAR_MASK;
+		se = VScriptEngineFactory.getEngineByName("JavaScript", maskvalue);
 
 		if (null != se ) {
 			Bindings bindings = se.getBindings(ScriptContext.GLOBAL_SCOPE);
 
-			bindings.put("me", this);
+			bindings.put("me", (Alerm_ForJS)this);
+			bindings.put("util_gram", gram);
 			bindings.put("api", api);
 
 		}else{
@@ -59,7 +65,7 @@ public class Alerm implements Runnable,TimerRunnable,SystemConst, Alerm_ForJS{
 	@Override
 	public void setUnit(final AlermUnit unit){
 		this.unit = unit;
-		/** TODO PropertyChangeをアラームマネージャまで伝える。 */
+		this.unit.addPropertyChangeListener(new UpdateListener());
 	}
 	/* (非 Javadoc)
 	 * @see vairy.core.alerm.Alerm_ForJS#getUnit()
@@ -104,6 +110,7 @@ public class Alerm implements Runnable,TimerRunnable,SystemConst, Alerm_ForJS{
 	 */
 	@Override
 	public void notifyTimerStart(){
+		unit.loadScript();
 		eval(EAlermScriptType.TIMERSTART);
 		unit.start();
 	}
@@ -122,7 +129,8 @@ public class Alerm implements Runnable,TimerRunnable,SystemConst, Alerm_ForJS{
 	 */
 	private void eval(EAlermScriptType type){
 		try {
-			se.eval(unit.getScript(type));
+			String script = unit.getScript(type);
+			se.eval(script);
 		} catch (ScriptException e) {
 			e.printStackTrace();
 		}
@@ -130,20 +138,20 @@ public class Alerm implements Runnable,TimerRunnable,SystemConst, Alerm_ForJS{
 
 	@Override
 	public void timerrun() {
-		if(unit.getBean().isDrive()){
-			Thread t = new Thread(this);
-			t.run();
-			t = null;
-		}
+		Thread t = new Thread(this);
+		t.start();
+		t = null;
 	}
 	@Override
 	public synchronized void run() {
 		/* 時間過ぎた */
-		if (unit.getDiff().getTimeInMillis() <= 0) {
-			eval(EAlermScriptType.TIMEREXEC);
-			unit.stop();
+		if(unit.getBean().isDrive()){
+			if (unit.getDiff().getTimeInMillis() <= 0) {
+				unit.stop();
+				eval(EAlermScriptType.TIMEREXEC);
 
-			chkRepeat();
+				chkRepeat();
+			}
 		}
 	}
 
@@ -159,9 +167,31 @@ public class Alerm implements Runnable,TimerRunnable,SystemConst, Alerm_ForJS{
 			}
 		}
 	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener){
+		propchalistener.add(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener){
+		propchalistener.remove(listener);
+	}
+
+	private void notifyPropertyChangeListener(PropertyChangeEvent evt){
+		for (PropertyChangeListener listener : propchalistener) {
+			listener.propertyChange(evt);
+		}
+	}
+
 	@Override
 	protected void finalize() throws Throwable {
 		super.finalize();
 		Delete();
+	}
+
+	private class UpdateListener implements PropertyChangeListener{
+		@Override
+		public void propertyChange(PropertyChangeEvent evt) {
+			Alerm.this.notifyPropertyChangeListener(evt);
+		}
 	}
 }

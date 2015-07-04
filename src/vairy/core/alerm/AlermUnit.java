@@ -10,9 +10,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import vairy.Debug.Debug;
+import vairy.debug.Debug;
 import vairy.core.alerm.param.AlermBean;
 import vairy.core.alerm.param.EAlermMode;
 import vairy.core.alerm.param.EAlermScriptType;
@@ -28,10 +29,11 @@ import vairy.io.FileReader;
  * @author vairydler
  *
  */
-public class AlermUnit implements AlermUnit_ForJS {
+public class AlermUnit implements AlermUnit_ForJS,Cloneable {
+	private AlermUnit prevalue = null;
 	private Map<EAlermScriptType, String> scriptmap = new HashMap<EAlermScriptType, String>();
 	private AlermBean bean;
-	private ArrayList<PropertyChangeListener> propchalistener = new ArrayList<>();
+	private List<PropertyChangeListener> propchalistener = new ArrayList<>();
 
 	public AlermUnit() {
 		AlermTime alerm;
@@ -52,11 +54,8 @@ public class AlermUnit implements AlermUnit_ForJS {
 	}
 	public void setBean(AlermBean alermbean) {
 		if (null != alermbean) {
-			AlermBean old = bean;
 			bean = alermbean;
 			loadScript();
-			bean.addPropertyChangeListener(new UpdateListener());
-			notifyPropertyChangeListener(new PropertyChangeEvent(this, "Bean", old, bean));
 		}
 	}
 	/* (非 Javadoc)
@@ -147,9 +146,9 @@ public class AlermUnit implements AlermUnit_ForJS {
 		if (null != filepath) {
 			if(new File(filepath).exists()){
 				try {
-					fr = new FileReader(filepath);
+					fr = new FileReader(filepath,"UTF-8");
 					while( null != (readbuff = fr.ReadLine())){
-						rtn.append(readbuff);
+						rtn.append(readbuff + "\r\n");
 					}
 				} catch (FileNotFoundException e) {
 					// TODO 自動生成された catch ブロック
@@ -183,10 +182,74 @@ public class AlermUnit implements AlermUnit_ForJS {
 		}
 	}
 
-	private class UpdateListener implements PropertyChangeListener{
-		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
-			AlermUnit.this.notifyPropertyChangeListener(evt);
+	private AlermUnit createClone(){
+		AlermUnit rtn;
+		try {
+			rtn = (AlermUnit) this.clone();
+			rtn.postClone();
+		} catch (CloneNotSupportedException e) {
+			rtn = new AlermUnit();
+			e.printStackTrace();
 		}
+		return rtn;
+	}
+
+	private void postClone(){
+		Debug.println(DebugKey.CYCLE, "postClone");
+		this.setBean(this.getBean().createClone());
+
+		Map<EAlermScriptType, String> hashMap = new HashMap<>();
+		hashMap.putAll(this.scriptmap);
+		this.scriptmap = hashMap;
+
+		List<PropertyChangeListener> propchalistener2 = new ArrayList<>();
+		propchalistener2.addAll(this.propchalistener);
+		this.propchalistener = propchalistener2;
+
+		if(null != this.prevalue){
+			this.prevalue = this.prevalue.createClone();
+			this.prevalue.prevalue = null;
+		}
+	}
+
+	public void chkPropChng(){
+		if(null != this.prevalue){
+			AlermBean prebean = prevalue.getBean();
+			AlermBean nowbean = this.getBean();
+
+			if(!prebean.getName().equals(nowbean.getName())){
+				notifyPropertyChangeListener(new PropertyChangeEvent(this, "Name", prebean.getName(), nowbean.getName()));
+			}
+
+			if(!prebean.getMode().equals(nowbean.getMode())){
+				notifyPropertyChangeListener(new PropertyChangeEvent(this, "Mode", prebean.getMode(), nowbean.getMode()));
+			}
+
+			if(!(0 == prebean.getAlerm().compareTo(nowbean.getAlerm()))){
+				notifyPropertyChangeListener(new PropertyChangeEvent(this, "Alerm", prebean.getAlerm(), nowbean.getAlerm()));
+			}
+
+			if(!(0 == prebean.getTimer().compareTo(nowbean.getTimer()))){
+				notifyPropertyChangeListener(new PropertyChangeEvent(this, "Timer", prebean.getTimer(), nowbean.getTimer()));
+			}
+
+			if(!(prebean.isDrive().equals(nowbean.isDrive()))){
+				notifyPropertyChangeListener(new PropertyChangeEvent(this, "Drive", prebean.isDrive(), nowbean.isDrive()));
+			}
+
+			if(!(prebean.isTimer_repeat().equals(nowbean.isTimer_repeat()))){
+				notifyPropertyChangeListener(new PropertyChangeEvent(this, "Repeat", prebean.isTimer_repeat(), nowbean.isTimer_repeat()));
+			}
+
+			if(!prebean.getScriptmap().equals(nowbean.getScriptmap())){
+				notifyPropertyChangeListener(new PropertyChangeEvent(this, "ScriptPath", prebean.getScriptmap(), nowbean.getScriptmap()));
+			}
+
+			if(!prevalue.scriptmap.equals(this.scriptmap)){
+				notifyPropertyChangeListener(new PropertyChangeEvent(this, "ScriptValue", prebean.getScriptmap(), nowbean.getScriptmap()));
+			}
+		}
+
+		prevalue = createClone();
 	}
 }

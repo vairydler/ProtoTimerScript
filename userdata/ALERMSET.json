@@ -1,12 +1,63 @@
 {
   "beans" : [ {
     "name" : "",
-    "alerm" : 1454488733788,
+    "alerm" : 1456821533788,
     "timer" : 0,
-    "goal" : 1454488733788,
+    "goal" : 1456821533788,
     "mode" : "ALERM",
-    "drive" : true,
+    "drive" : false,
     "timer_repeat" : false,
-    "scriptmap" : { }
+    "scriptmap" : {
+      "TIMERSTOP" : "",
+      "TIMEREXEC" : "",
+      "PROGRAMEND" : "",
+      "PROGRAMSTART" : "",
+      "TIMERSTART" : "C:\\Users\\vairy\\Desktop\\koi\\統合\\total_start.js"
+    }
+  }, {
+    "name" : "バトル",
+    "alerm" : 1422806909583,
+    "timer" : 86410000,
+    "goal" : 1424060761614,
+    "mode" : "TIMER",
+    "drive" : false,
+    "timer_repeat" : false,
+    "scriptmap" : {
+      "PROGRAMSTART" : "",
+      "TIMERSTOP" : "C:\\Users\\vairy\\Desktop\\koi\\debug\\debug_end.js",
+      "TIMEREXEC" : "",
+      "TIMERSTART" : "",
+      "PROGRAMEND" : ""
+    }
+  }, {
+    "name" : "インターバル",
+    "alerm" : 1422808928606,
+    "timer" : 31449610000,
+    "goal" : 1455423342423,
+    "mode" : "TIMER",
+    "drive" : false,
+    "timer_repeat" : false,
+    "scriptmap" : {
+      "TIMEREXEC" : "C:\\Users\\vairy\\Desktop\\koi\\debug\\debug_exe.js",
+      "PROGRAMEND" : "",
+      "PROGRAMSTART" : "",
+      "TIMERSTART" : "",
+      "TIMERSTOP" : ""
+    }
+  }, {
+    "name" : "グローバル",
+    "alerm" : -62132694484762,
+    "timer" : -694310312000,
+    "goal" : 1423146925766,
+    "mode" : "TIMER",
+    "drive" : false,
+    "timer_repeat" : false,
+    "scriptmap" : {
+      "TIMERSTART" : "",
+      "PROGRAMSTART" : "",
+      "TIMEREXEC" : "",
+      "TIMERSTOP" : "",
+      "PROGRAMEND" : ""
+    }
   } ]
 }

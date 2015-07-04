@@ -1,19 +1,24 @@
 ﻿package vairy.core.alerm;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 
 import vairy.core.alerm.param.AlermBean;
 import vairy.core.alerm.param.AlermBeans;
 import vairy.core.app.AppIF_ForJS;
 import vairy.lib.fileaccess.user.AlermAccecor;
 import vairy.main.resorce.SystemConst;
-import variy.timer.CycleTimer;
+import vairy.timer.CycleTimer;
+import vairy.timer.TimerRunnable;
 
 public class AlermManager implements SystemConst,DeleteListener{
 	private LinkedList<Alerm> alermlist = new LinkedList<Alerm>();
 	private AppIF_ForJS api = new AppIF_ForJS(this);
+	private Map<String, Object> gram = new HashMap<>();
+
 	public Integer alermsize(){
 		return alermlist.size();
 	}
@@ -25,7 +30,6 @@ public class AlermManager implements SystemConst,DeleteListener{
 	public void setAlerm(Alerm alerm){
 		alermlist.add(alerm);
 		alerm.addDeleteListener(this);
-		CycleTimer.addListener(alerm);
 	}
 	/**
 	 * 名前基準でアラームを検索してインデックスを取得する。おんなじ名前がいっぱいあった場合は最初に見つけたやつ。
@@ -33,7 +37,7 @@ public class AlermManager implements SystemConst,DeleteListener{
 	 * @return 見つけたアラームインデックス。なかったらnull
 	 */
 	public Integer getAlermIndex(final String name) {
-		Integer rtn = null;
+		Integer rtn = -1;
 
 		for (int i = 0; i < alermlist.size(); i++) {
 			Alerm element = alermlist.get(i);
@@ -116,7 +120,7 @@ public class AlermManager implements SystemConst,DeleteListener{
 		AlermUnit unit;
 		unit = new AlermUnit();
 		unit.setBean(bean);
-		setAlerm(new Alerm(unit,api));
+		setAlerm(new Alerm(unit,api,gram));
 	}
 
 	/**
@@ -193,6 +197,17 @@ public class AlermManager implements SystemConst,DeleteListener{
 		}
 	}
 
+
+	/**
+	 * 管理中のアラームに周期処理を通知する。
+	 */
+	public void notifyCycle(){
+		for (Alerm element : alermlist) {
+			element.run();
+			element.getUnit().chkPropChng();
+		}
+	}
+
 	/**
 	 * 管理中のアラームのスクリプトを読み直す。
 	 */
@@ -207,4 +222,5 @@ public class AlermManager implements SystemConst,DeleteListener{
 			removeAlerm((Alerm)sorce);
 		}
 	}
+
 }

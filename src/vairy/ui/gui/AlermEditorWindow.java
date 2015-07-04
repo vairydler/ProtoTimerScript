@@ -49,7 +49,7 @@ public class AlermEditorWindow extends JDialog {
 	public AlermEditorWindow(final Alerm_ForJS target) {
 		this.target = target;
 
-		this.setLayout(new GridLayout());
+		this.getContentPane().setLayout(new GridLayout(0, 1));
 
 		name = createName();
 		this.getContentPane().add(name);
@@ -109,7 +109,10 @@ public class AlermEditorWindow extends JDialog {
 	 * @return
 	 */
 	private LabelComp<JTextField> createName() {
-		return new LabelComp<JTextField>(new JTextField());
+		LabelComp<JTextField> labelComp = new LabelComp<JTextField>(new JTextField());
+		labelComp.setLblvalue("名前");
+		labelComp.getComponent().setPreferredSize(new Dimension(200, 20));
+		return labelComp;
 	}
 
 	/**

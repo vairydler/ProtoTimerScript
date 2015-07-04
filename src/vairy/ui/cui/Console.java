@@ -19,7 +19,7 @@ import javax.swing.JFrame;
 import org.apache.commons.lang.math.NumberUtils;
 import org.omg.PortableInterceptor.NON_EXISTENT;
 
-import vairy.Debug.Debug;
+import vairy.debug.Debug;
 import vairy.core.alerm.Alerm;
 import vairy.core.alerm.AlermManager;
 import vairy.core.alerm.Alerm_ForJS;
@@ -32,9 +32,9 @@ import vairy.debug.user.DebugKey;
 import vairy.gui.swing.CalendarBar;
 import vairy.gui.swing.CalendarBar.FIELD;
 import vairy.gui.swing.CalendarBar.TEXT_DIRECT;
+import vairy.timer.CycleTimer;
 import vairy.ui.gui.MainAlermFrame;
 import vairy.ui.gui.MainAlermPanel;
-import variy.timer.CycleTimer;
 
 public class Console {
 	private enum Command{
